@@ -8,6 +8,8 @@ Dental Marketing AI Studio is a standalone AI marketing assistant designed for d
 
 **v1.4.0 — Marketing OS**
 
+> **v1.4.1 is prepared for release:** it adds a built-in Update Checker so installed copies can compare their version with the latest public GitHub Release and show the permanent download link when an update is available.
+
 ### What it includes
 
 - Marketing strategy planning
@@ -22,12 +24,13 @@ Dental Marketing AI Studio is a standalone AI marketing assistant designed for d
 - Social content planning and scheduling
 - WhatsApp lead response support
 - Internal assistant orchestration and routing
+- Built-in update checking starting with v1.4.1
 
-The v1.4.0 package contains **28 specialized Skills** and runs in standalone mode with no required private assistant or account-specific dependency.
+The v1.4.1 package contains **29 specialized Skills** and remains standalone with no required private assistant or unresolved required dependency.
 
 ## Download latest version
 
-Once the first release is published, use this permanent link:
+Use this permanent link:
 
 **https://github.com/danaaburawaeh-glitch/dental-marketing-ai-studio/releases/latest/download/Dental-Marketing-AI-Studio-Latest.zip**
 
@@ -51,7 +54,16 @@ This assistant is a marketing and practice-growth system. It is not intended to 
 
 ## Updates
 
-Version information is machine-readable in [VERSION.json](VERSION.json). Future releases use semantic versioning:
+Starting with v1.4.1, users can ask:
+
+- `هل يوجد تحديث؟`
+- `تحقق من التحديثات`
+- `ما آخر إصدار؟`
+- `check for updates`
+
+The update checker is read-only. It checks the public GitHub Latest Release and never installs, deletes, or replaces files automatically.
+
+Version information is machine-readable in [VERSION.json](VERSION.json). Releases use semantic versioning:
 
 - `x.y.Z` — fixes and maintenance
 - `x.Y.0` — new capabilities and Skills
