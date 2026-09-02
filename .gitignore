@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment / secrets
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+
+# Node
+node_modules/
+
+# Logs and scratch
+*.log
+tmp/
+temp/
+
+# Editor / IDE caches
+.idea/
+.vscode/

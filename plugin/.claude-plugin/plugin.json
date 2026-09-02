@@ -1,22 +1,19 @@
 {
-  "name": "assistant-studio",
+  "name": "dental-marketing-ai-studio",
   "version": "1.4.1",
-  "description": "استوديو المساعدين — نظام محوكَم لبناء وتشغيل وصيانة مساعدين مخصصين داخل Claude، متخصص في إدارة العيادة والتسويق فقط: مخطط موحّد، دورة حياة، إصدارات دلالية، سياستان عامتان غير قابلتين للتجاوز (house-rules + clinical-firewall)، وتوجيه حتمي مختبَر. القرار السريري خارج نطاقه عمداً — انظر governance/scope-boundary.md. إصدار Marketing OS Standalone مع فاحص تحديثات مدمج: يعمل بالكامل بلا أي اعتماديات خاصة بحساب أو مساعدين أو ملفات خارج الحزمة — انظر governance/standalone-guarantee.md.",
+  "description": "AI Marketing Operating System for dentists and dental clinics.",
   "author": {
-    "name": "Assistant Studio"
+    "name": "Dental Marketing AI Studio"
   },
+  "license": "MIT",
   "keywords": [
-    "assistant",
-    "governance",
-    "custom-gpt",
-    "skills",
-    "knowledge-base",
-    "routing",
     "dental",
-    "arabic",
     "marketing",
     "clinic-management",
+    "instagram",
+    "seo",
+    "skills",
+    "arabic",
     "non-clinical"
-  ],
-  "license": "MIT"
+  ]
 }

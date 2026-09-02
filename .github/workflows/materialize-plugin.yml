@@ -21,12 +21,25 @@ jobs:
           curl -L --fail -o plugin.zip "https://github.com/danaaburawaeh-glitch/dental-marketing-ai-studio/releases/latest/download/Dental-Marketing-AI-Studio-Latest.zip"
       - name: Extract plugin
         run: |
-          rm -rf plugin plugin-tmp
+          # Preserve the committed plugin manifest: it carries the marketplace
+          # plugin identity (name: dental-marketing-ai-studio) and must not be
+          # reverted by the manifest shipped inside the release ZIP.
+          rm -rf plugin-tmp manifest-backup
+          mkdir -p manifest-backup
+          cp plugin/.claude-plugin/plugin.json manifest-backup/plugin.json
+          rm -rf plugin
           mkdir -p plugin-tmp
           unzip -q plugin.zip -d plugin-tmp
           ROOT=$(find plugin-tmp -mindepth 1 -maxdepth 1 -type d | head -n 1)
           mv "$ROOT" plugin
           rm -rf plugin-tmp plugin.zip
+          # Strip junk and restore the authoritative manifest.
+          find plugin -name '.DS_Store' -delete
+          find plugin -name '*.pyc' -delete
+          find plugin -name '__pycache__' -type d -prune -exec rm -rf {} + || true
+          mkdir -p plugin/.claude-plugin
+          mv manifest-backup/plugin.json plugin/.claude-plugin/plugin.json
+          rm -rf manifest-backup
       - name: Commit plugin directory
         run: |
           git config user.name "github-actions[bot]"

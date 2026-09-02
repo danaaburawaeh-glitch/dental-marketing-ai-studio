@@ -1,20 +1,46 @@
 # Installation & Updates
 
-## First installation
+## Method A — Claude Marketplace (recommended)
 
-1. Open the repository: `danaaburawaeh-glitch/dental-marketing-ai-studio`.
-2. Download `dist/Dental-Marketing-AI-Studio-Latest.zip`.
-3. Keep the ZIP intact until you are ready to install it in your supported assistant/plugin environment.
-4. Follow the installer or plugin import flow supported by your environment.
-5. After installation, check `VERSION.json` inside the distribution repository whenever you want to confirm the latest stable version.
+This repository is a native Claude Code plugin marketplace.
 
-## Updating
+1. Open your Claude plugin or marketplace settings.
+2. Choose **Add marketplace**.
+3. Paste the marketplace repository URL:
+
+   ```
+   https://github.com/danaaburawaeh-glitch/dental-marketing-ai-studio
+   ```
+
+4. Enable **Sync automatically**.
+5. Click **Sync**.
+6. Install the plugin: **`dental-marketing-ai-studio`**.
+
+The marketplace manifest (`.claude-plugin/marketplace.json`) points at the `./plugin` directory in this repository, so Claude reads the plugin straight from `main`.
+
+### Updating with Method A
+
+With **Sync automatically** enabled, Claude picks up new versions from this repository on its own. This is the preferred update path — no manual download or file replacement is needed.
+
+## Method B — Manual ZIP installation
+
+1. Download the permanent latest-release package:
+
+   ```
+   https://github.com/danaaburawaeh-glitch/dental-marketing-ai-studio/releases/latest/download/Dental-Marketing-AI-Studio-Latest.zip
+   ```
+
+2. Keep the ZIP intact until you are ready to install it in your supported assistant/plugin environment.
+3. Follow the installer or plugin import flow supported by your environment.
+4. After installation, check `VERSION.json` in this repository whenever you want to confirm the latest stable version.
+
+### Updating with Method B
 
 The public download filename is intentionally fixed:
 
 `Dental-Marketing-AI-Studio-Latest.zip`
 
-When a new stable version is published, the repository version metadata and this package will be updated. Download the same file again to obtain the newest stable build.
+Manual installations **do not update themselves**. When a new stable version is published, download the same file again and replace your existing installation yourself.
 
 Before replacing an existing installation:
 
@@ -22,6 +48,12 @@ Before replacing an existing installation:
 - Read `CHANGELOG.md` to understand what changed.
 - Preserve any local/private knowledge or credentials outside the distributed package.
 - Do not overwrite private configuration files unless the release notes explicitly instruct you to do so.
+
+## Built-in Update Checker
+
+The plugin includes a read-only Update Checker (`system-update-checker`). Ask `check for updates` or `هل يوجد تحديث؟` and it compares your installed version against the public GitHub Latest Release.
+
+It is a status and diagnostic tool only. It never installs, deletes, overwrites, or replaces files, and it never executes remote code. For users installed via Method A, Marketplace Sync remains the actual update mechanism.
 
 ## Stable vs development versions
 

@@ -10,6 +10,16 @@ All notable changes to Dental Marketing AI Studio are documented here.
 - Permanent latest-download link support.
 - Arabic and English update-check routing.
 
+### Claude Plugin Marketplace compatibility
+- Native Claude Code Plugin Marketplace support: this repository can now be added directly as a marketplace.
+- The plugin runtime was moved into `./plugin` so the marketplace can reference it in place.
+- Added `plugin/.claude-plugin/plugin.json` as the plugin manifest.
+- `.claude-plugin/marketplace.json` now references the local `./plugin` directory with a relative source.
+- Removed the unsupported `archive` marketplace source that pointed at a GitHub Release ZIP.
+- Automatic marketplace sync ("Sync automatically") is now supported and is the preferred update path.
+- Manual ZIP installation remains available; the built-in Update Checker is retained as a read-only secondary status mechanism.
+- Standalone assistant behavior, all 29 Skills, governance, and routing are preserved unchanged.
+
 ### Safety & behavior
 - The checker never installs, deletes, uploads, or replaces user files automatically.
 - If live GitHub access fails, it reports that the check failed instead of claiming the installed copy is current.
