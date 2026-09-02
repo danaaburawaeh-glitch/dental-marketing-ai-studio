@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "dental-marketing-ai-studio",
+  "version": "1.4.1",
+  "description": "Dental Marketing AI Studio marketplace for dentists and dental clinics.",
+  "owner": {
+    "name": "Dental Marketing AI Studio"
+  },
+  "plugins": [
+    {
+      "name": "dental-marketing-ai-studio",
+      "description": "AI Marketing Operating System for dentists and dental clinics.",
+      "version": "1.4.1",
+      "source": {
+        "source": "archive",
+        "url": "https://github.com/danaaburawaeh-glitch/dental-marketing-ai-studio/releases/latest/download/Dental-Marketing-AI-Studio-Latest.zip",
+        "sha256": "c26004a2a0325dcada98a7873a42489b111a426ff0b338a3c0bd14157dac7025"
+      },
+      "homepage": "https://github.com/danaaburawaeh-glitch/dental-marketing-ai-studio"
+    }
+  ]
+}
