@@ -1,0 +1,40 @@
+name: Materialize Claude Plugin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/materialize-plugin.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Download latest release asset
+        run: |
+          curl -L --fail -o plugin.zip "https://github.com/danaaburawaeh-glitch/dental-marketing-ai-studio/releases/latest/download/Dental-Marketing-AI-Studio-Latest.zip"
+      - name: Extract plugin
+        run: |
+          rm -rf plugin plugin-tmp
+          mkdir -p plugin-tmp
+          unzip -q plugin.zip -d plugin-tmp
+          ROOT=$(find plugin-tmp -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          mv "$ROOT" plugin
+          rm -rf plugin-tmp plugin.zip
+      - name: Commit plugin directory
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add plugin
+          if git diff --cached --quiet; then
+            echo "Plugin directory already up to date"
+          else
+            git commit -m "Materialize latest Claude plugin package"
+            git push
+          fi
