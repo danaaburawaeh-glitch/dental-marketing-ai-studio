@@ -1,0 +1,102 @@
+# مجموعة التنسيق الذهبية — Orchestration Golden Set
+# يشغّلها scripts/orchestration_tests.py — يتحقق من الجزء الحتمي فقط (قرار
+# Single-vs-Multi عبر نفس محرك routing_tests.py، ترتيب الاعتماديات من
+# handoff_contract الفعلي، اكتشاف الدورات، وجود الهدف) — لا يحاكي تحليل النية
+# الدلالي الذي يقوم به system-assistant-orchestrator وقت التشغيل الحي.
+
+meta:
+  suite_id: orchestration-golden-set
+  version: "1.0"
+  status: ACTIVE
+
+cases:
+
+  # ── Single vs Multi — Never orchestrate when direct routing is sufficient ──
+  - id: single-reel
+    type: single_vs_multi
+    request: "اكتبي لي ريل"
+    expect_mode: SINGLE
+    expect_assistant: instagram-reel-strategist
+
+  - id: single-directory-lookup
+    type: single_vs_multi
+    request: "وش المساعدين عندي"
+    expect_mode: SINGLE
+    expect_assistant: system-assistant-directory
+
+  - id: multi-analyze-diagnose-content
+    type: single_vs_multi
+    request: "حللي الأرقام واكتشفي المشكلة وابني لي محتوى"
+    expect_mode: MULTI
+    note: >
+      ثلاث نوايا مستقلة بمخرَج مستقل لكل منها — تحليل، تشخيص، بناء نظام محتوى.
+      لا مساعد واحد يغطيها معاً وفق triggers الحالية.
+
+  - id: multi-numbers-then-experiment
+    type: single_vs_multi
+    request: "حللي أداء الحساب، اكتشفي المشكلة، ثم صممي تجربة نمو"
+    expect_mode: MULTI
+
+  # ── ترتيب الاعتماديات — من handoff_contract الفعلي، لا افتراض ──────────────
+  - id: dag-content-architect-inputs
+    type: dependency_order
+    assistants:
+      - instagram-audience-analyst
+      - instagram-content-performance-analyst
+      - instagram-personal-brand-strategist
+      - instagram-competitor-analyst
+      - instagram-content-architect
+    expect_before:
+      - {before: instagram-audience-analyst, after: instagram-content-architect}
+      - {before: instagram-content-performance-analyst, after: instagram-content-architect}
+      - {before: instagram-personal-brand-strategist, after: instagram-content-architect}
+      - {before: instagram-competitor-analyst, after: instagram-content-architect}
+
+  - id: dag-data-then-performance-then-experiment
+    type: dependency_order
+    assistants:
+      - instagram-data-analyst
+      - instagram-content-performance-analyst
+      - instagram-experimentation-manager
+    expect_before:
+      - {before: instagram-data-analyst, after: instagram-content-performance-analyst}
+      - {before: instagram-content-performance-analyst, after: instagram-experimentation-manager}
+
+  # ── وجود الهدف ───────────────────────────────────────────────────────────
+  - id: target-exists-real
+    type: target_exists
+    assistant: instagram-data-analyst
+    expect: OK
+
+  - id: target-exists-fake
+    type: target_exists
+    assistant: nonexistent-assistant-xyz
+    expect: BLOCKED
+
+  - id: target-exists-deprecated
+    type: target_exists
+    assistant: __synthetic_deprecated__
+    synthetic_status: DEPRECATED
+    expect: BLOCKED
+
+  # ── اكتشاف الدورات — synthetic، يضمن الاكتشاف بصرف النظر عن الحالة الفعلية ──
+  - id: circular-synthetic-3node
+    type: circular_detection
+    graph: {A: [B], B: [C], C: [A]}
+    expect: CIRCULAR
+
+  - id: circular-synthetic-2node
+    type: circular_detection
+    graph: {A: [B], B: [A]}
+    expect: CIRCULAR
+
+  - id: no-cycle-linear
+    type: circular_detection
+    graph: {A: [B], B: [C], C: []}
+    expect: NO_CYCLE
+
+  - id: no-cycle-real-weekly-review
+    type: circular_detection
+    graph_from_metadata: instagram-weekly-growth-review
+    expect: NO_CYCLE
+    note: أوسع can_delegate_to في النظام الفعلي (٨ أهداف) — يجب ألا يحوي دورة

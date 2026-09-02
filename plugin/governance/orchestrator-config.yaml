@@ -1,0 +1,19 @@
+# إعدادات تنفيذ المنسّق — Orchestrator Execution Limits
+# مصدر الحقيقة الوحيد لحدود التنفيذ. system-assistant-orchestrator يقرأ من هنا
+# ولا يُدرج أي رقم حرفياً (hard-coded) في SKILL.md أو أي سكربت آخر.
+
+meta:
+  config_id: orchestrator-config
+  version: "1.0"
+  status: ACTIVE
+  owner: clinic-owner
+  last_updated: "2026-08-21"
+
+limits:
+  max_steps: 8                  # أقصى عدد خطوات في مسار تنفيذ واحد قبل STOP: MAX_DEPTH_EXCEEDED
+  max_depth: 4                  # أقصى عمق تفويض متسلسل (A→B→C→D) — عمق أكبر = تصميم مهمة خاطئ لا حاجة أكبر
+  max_same_assistant_calls: 2   # أقصى استدعاء لنفس المساعد داخل مسار واحد؛ الثالث يُرفض بلا سبب جديد موثَّق
+  no_progress_steps: 2          # خطوتان متتاليتان بلا تقدّم فعلي (نفس المخرَج/نفس الحالة) → STOP
+
+# رفع أي حد أعلاه قرار حوكمة، لا تعديل عابر — يمر عبر
+# governance/templates/architecture-change-proposal.md لأنه يغيّر سلوك التنفيذ الافتراضي.

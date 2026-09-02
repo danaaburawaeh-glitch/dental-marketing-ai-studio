@@ -1,0 +1,72 @@
+# عقد التسليم الموحّد — Handoff Contract Schema
+# المرجع الإلزامي لكل تسليم بين مساعد ومساعد (assistant-to-assistant handoff)،
+# سواء تم عبر can_delegate_to (استدعاء فعلي أثناء التنفيذ) أو skill_dependencies
+# (استهلاك مخرجات جاهزة). التمييز بينهما في governance/assistant-schema.md.
+#
+# لا يُستخدم لتوجيه المستخدمة الأولي (ذلك negative_triggers/triggers في
+# assistant-schema.md) — هذا فقط لما يُمرَّر بين مساعدَين بعد اختيار المسار.
+
+meta:
+  schema_id: handoff-schema
+  schema_version: "1.0"
+  status: ACTIVE
+  owner: clinic-owner
+  applies_to: ALL_ASSISTANTS
+  last_updated: "2026-08-21"
+
+# ── الحد الأدنى الإلزامي لكل handoff ────────────────────────────────────────
+# أي حقل هنا غائب = handoff غير صالح. الـOrchestrator يرفضه ويسجل SCHEMA_INVALID.
+handoff:
+  schema_version: "1.0"        # يطابق meta.schema_version وقت الإنشاء — لفحص التوافق
+  request_id:                  # معرّف الطلب الأصلي من المستخدمة — واحد لكل سلسلة تنسيق كاملة
+  parent_task_id:               # null إن كانت هذه أول خطوة؛ وإلا معرّف المهمة التي وَلَّدت هذه
+  task_id:                      # معرّف هذه الخطوة تحديداً — فريد داخل السلسلة
+  from_assistant:                # assistant_id المُسلِّم — أو "orchestrator" إن كان أول تحليل نية
+  from_version:                  # نسخة المُسلِّم وقت التنفيذ (semver) — للتتبّع عند سلوك مختلف بين نسخ
+  to_assistant:                   # assistant_id المُستقبِل
+  intent:                          # جملة واحدة: ما المطلوب من المُستقبِل تحديداً — لا الطلب الأصلي كاملاً
+  input_summary:                    # ملخص ما يحتاجه المُستقبِل من سياق — لا نسخ كامل المحادثة
+  required_context: []               # مسارات knowledge/ أو حقول output سابقة يجب توفرها قبل التنفيذ
+  output:
+    data: {}                          # مخرَج مهيكَل (جداول، أرقام، قوائم) — لا نثر حر إن أمكن التهيكل
+    conclusions: []                    # استنتاجات صريحة قابلة لإعادة الاستخدام من المساعد التالي
+    uncertainties: []                  # ما لم يُحسَم بثقة كافية — إلزامي الذكر لا الإخفاء
+    missing_information: []            # ما احتاجه المساعد ولم يتوفر — بدل اختراعه
+    warnings: []                       # أي تحذير سلامة/امتثال/نطاق يجب أن يراه المساعد التالي أو الطبيب/ة
+    sources: []                        # مصادر البيانات أو المعرفة المستخدَمة (اسم الملف، الأداة، الفترة الزمنية)
+  safety:
+    status:                             # OK | SAFETY_BLOCK — من clinical-firewall أو house-rules
+    flags: []                           # أعلام محددة: PATIENT_DATA, CLINICAL_INTENT, UNVERIFIED_CLAIM, ...
+  execution:
+    status:                             # انظر status codes أدناه
+    confidence:                          # HIGH | MEDIUM | LOW — تقدير المُسلِّم لموثوقية مخرجه
+    timestamp:                           # وقت إنتاج هذا الـ handoff (ISO 8601) — يُمرَّر من الأداة المستدعية، لا يُولَّد داخل السكربت
+
+# ── status codes موحّدة ──────────────────────────────────────────────────────
+# execution.status يجب أن يكون أحد هذه القيم حصراً. غير ذلك = SCHEMA_INVALID.
+status_codes:
+  - COMPLETE           # المهمة أُنجزت بالكامل، المخرَج جاهز للاستهلاك
+  - PARTIAL            # أُنجز جزء، والباقي موثَّق في missing_information
+  - BLOCKED            # لم يبدأ التنفيذ — انظر السبب في warnings
+  - NEEDS_INPUT        # يحتاج مدخلاً من المستخدمة قبل المتابعة
+  - ROUTING_CONFLICT   # تعذّر حسم مساعد لاحق — انظر governance/routing-policy.md §القاعدة ٩
+  - SAFETY_BLOCK       # أوقفه clinical-firewall أو house-rules — لا يُتجاوَز
+  - DEPENDENCY_FAILED  # مساعد سابق في السلسلة أعاد BLOCKED/SAFETY_BLOCK ولم يوفر ما يلزم
+  - SCHEMA_INVALID     # الـ handoff نفسه لا يطابق هذا المخطط
+
+# ── قواعد الصلاحية ───────────────────────────────────────────────────────────
+validation_rules:
+  - كل حقل في "handoff" أعلاه إلزامي الوجود، حتى لو كانت قيمته فارغة صراحة ([] أو null) — لا حذف الحقل.
+  - execution.status يجب أن يكون من status_codes حصراً.
+  - safety.status == SAFETY_BLOCK يعني execution.status يجب أن يكون SAFETY_BLOCK أيضاً — لا تناقض بين الحقلين.
+  - schema_version في الـ handoff يجب أن يطابق meta.schema_version الحالي؛ عدم التطابق = SCHEMA_INVALID
+    ويُسجَّل كـ "incompatible schema version" (انظر فحوص validate_system.py).
+  - to_assistant يجب أن يكون assistant_id كانونياً بحالة ACTIVE (أو TESTING/PILOT إن استُدعي صراحة)؛
+    استدعاء DEPRECATED/ARCHIVED كوجهة handoff = خطأ يُرفض قبل التنفيذ.
+  - missing_information لا تُترك فارغة تجميلاً: إن كان هناك نقص فعلي وذُكر COMPLETE، هذا تناقض يُرصَد.
+  - لا يُخترَع محتوى داخل data/conclusions لتعويض نقص — الفراغ الصادق أفضل من التخمين (house-rules §٦).
+
+# ── ملاحظة نطاق ──────────────────────────────────────────────────────────────
+# هذا المخطط عام لكل تسليم. عند لمس محتوى مرضى أو نية سريرية، تُضاف safety.flags
+# المناسبة إلزامياً وفق identity/clinical-firewall.md — هذا الملف لا يُكرر تلك القواعد،
+# فقط يوفر الحقل الذي تُسجَّل فيه.

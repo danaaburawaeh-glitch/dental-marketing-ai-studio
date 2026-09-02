@@ -1,0 +1,199 @@
+suite: foundation-regression
+version: 1.2.0
+cases:
+- phrase: ليش الحساب ما ينمو؟
+  expect: instagram-funnel-diagnostician
+  rule: R2
+  note: كانت 1-chief-growth-officer-inst
+- phrase: كم معدل التفاعل؟
+  expect: instagram-data-analyst
+  rule: R2
+  note: كانت 2-instagram-data-analyst-inst
+- phrase: ليش هذا المنشور نجح؟
+  expect: instagram-content-performance-analyst
+  rule: R2
+  note: كانت 4-content-performance-analyst-inst
+- phrase: اكتبي لي ريل
+  expect: instagram-reel-strategist
+  rule: R2
+  note: كانت 5-reel-strategy-specialist-inst
+- phrase: رتبي محتوى الشهر
+  expect: content-short-form-video-planner
+  rule: R4
+  note: 'v1.3.0: كانت تُحال خارجاً (drdana-short-form-video-plan، Skill خارجية غير موجودة). أُعيد التوجيه إلى content-short-form-video-planner — Skill داخلية جديدة تغطي نفس القدرة. أخصائي الريلز يُقصى عبر negative_trigger أولاً.
+
+    '
+- phrase: ابني نظام محتوى
+  expect: instagram-content-architect
+  rule: R2
+- phrase: المتابعين ما يحجزون
+  expect: instagram-conversion-analyst
+  rule: R2
+- phrase: كيف أرد على هذي الرسالة؟
+  expect: content-whatsapp-lead-responder
+  rule: R4
+  note: 'v1.3.0: كانت تُحال خارجاً (whatsapp-closing-specialist، Skill خارجية غير موجودة). أُعيد التوجيه إلى content-whatsapp-lead-responder — Skill داخلية جديدة. محلل التحويل يُقصى عبر negative_trigger أولاً.
+
+    '
+- phrase: تقرير الأسبوع
+  expect: instagram-weekly-growth-review
+  rule: R2
+- phrase: راجع أرقام الحساب واعطيني خطة ٩٠ يوم
+  expect: system-assistant-builder
+  rule: R4
+  note: 'dana-instagram-growth-director غير موجود في الحساب (تحقُّق مباشر 2026-08-28) — يجب أن تُقصى مهارات الفريق وتُحال إلى system-assistant-builder لعدم وجود مساعد يغطي هذا النطاق حالياً
+
+    '
+- phrase: مين جمهوري
+  expect: instagram-audience-analyst
+  rule: R2
+- phrase: وش يسوون المنافسين
+  expect: instagram-competitor-analyst
+  rule: R2
+- phrase: نجرب إيش
+  expect: instagram-experimentation-manager
+  rule: R2
+- phrase: تموضعي
+  expect: instagram-personal-brand-strategist
+  rule: R2
+- phrase: ابني لي مساعد
+  expect: system-assistant-builder
+  rule: R2
+- phrase: وش المساعدين عندي
+  expect: system-assistant-directory
+  rule: R2
+- phrase: احفظي هذا للمساعد
+  expect: system-knowledge-manager
+  rule: R2
+- phrase: المساعد ما اشتغل
+  expect: system-assistant-tuner
+  rule: R2
+- phrase: وش تقول الأرقام
+  expect: instagram-data-analyst
+  rule: R3
+  note: لا يجوز أن تذهب لمشخّص القمع
+- phrase: وين ينكسر التحويل
+  expect: instagram-conversion-analyst
+  rule: R3
+  note: لا يجوز أن تذهب لمشخّص القمع رغم اشتراك مفهوم القمع
+- phrase: حللي الريلز
+  expect: instagram-reel-strategist
+  rule: R2
+  note: لا يجوز أن تذهب لمحلل أداء المحتوى
+- phrase: ركائز المحتوى
+  expect: instagram-content-architect
+  rule: R2
+  note: لا يجوز أن تذهب لمحلل أداء المحتوى
+- phrase: راجعي المنشور قبل النشر
+  expect: content-case-post-reviewer
+  rule: LIFECYCLE
+  note: 'content-case-post-reviewer رُقّيت إلى ACTIVE في 2026-08-28 بعد تشغيلة حقيقية اعتمدتها الطبيب/ة (مراجعة ريل فينيرز فعلي). التوجيه التلقائي مسموح الآن.
+
+    '
+- phrase: كم الساعة الحين
+  expect: NO_MATCH
+  rule: R9
+  note: لا يُجبَر الطلب على أقرب مساعد
+- phrase: أرقام الحساب
+  expect: instagram-data-analyst
+  rule: R2
+  note: 'العبارة القصيرة كانت تُقصى بخطأ لأنها جزء من عبارة سالبة طويلة. أُصلح بترجيح الطول في المطابقة، وأُعيدت العبارة إلى triggers.
+
+    '
+- phrase: راجعي أرقام الحساب واعطيني خطة ٩٠ يوم
+  expect: system-assistant-builder
+  rule: R4
+  note: 'العبارة الكاملة تُقصي محلل البيانات؛ dana-instagram-growth-director غير موجود في الحساب (تحقُّق مباشر 2026-08-28) فتُحال إلى system-assistant-builder
+
+    '
+- phrase: خطة فيديوهات ٣٠ يوم
+  expect: content-short-form-video-planner
+  rule: R4
+  note: 'v1.3.0: كانت تُحال خارجاً (drdana-short-form-video-plan). أُعيد التوجيه إلى content-short-form-video-planner. مهندس المحتوى يُقصى عبر negative_trigger أولاً.
+
+    '
+- phrase: راجعي البايو
+  expect: instagram-conversion-analyst
+  rule: R2
+- phrase: وش أنشر بالضبط
+  expect: instagram-content-architect
+  rule: R2
+- phrase: اكتب سيناريو إغلاق ليد متردد
+  expect: content-whatsapp-lead-responder
+  rule: R2
+- phrase: أنشئ خطة تسويقية كاملة
+  expect: marketing-strategy-planner
+  rule: R2
+- phrase: أنشئ تقويم محتوى أسبوعي
+  expect: content-social-calendar-scheduler
+  rule: R2
+- phrase: خطة فيديو شهر كامل
+  expect: content-short-form-video-planner
+  rule: R2
+- phrase: خطة تسويقية كاملة
+  expect: marketing-strategy-planner
+  rule: R4
+  note: كان negative_trigger في instagram-personal-brand-strategist يشير خارجاً — الآن Skill داخلية
+- phrase: لينكدإن
+  expect: marketing-strategy-planner
+  rule: R4
+  note: كان negative_trigger في instagram-personal-brand-strategist يشير إلى linkedin-strategy الخارجية
+- phrase: تقويم نشر بتواريخ
+  expect: content-social-calendar-scheduler
+  rule: R4
+  note: كان negative_trigger في instagram-content-architect يشير إلى social-media-calendar الخارجية
+- phrase: عدّلي صور الحالة
+  expect: content-case-post-reviewer
+  rule: LIFECYCLE
+  note: 'v1.3.0: كانت تُحال خارجاً (smile-doc-standardizer، Skill خارجية غير موجودة). الوظيفة امتُصت داخل content-case-post-reviewer نفسها بدل إنشاء Skill خامسة — أصبحت trigger مباشر لا negative_trigger.
+
+    '
+- phrase: صمم عرض تسويقي للفينيرز
+  expect: marketing-offer-architect
+  rule: R2
+  note: v1.4.0 Marketing OS capability
+- phrase: خطة إعلانات مدفوعة
+  expect: marketing-paid-media-planner
+  rule: R2
+  note: v1.4.0 Marketing OS capability
+- phrase: ليش الليد ما يحجز
+  expect: marketing-lead-funnel-optimizer
+  rule: R2
+  note: v1.4.0 Marketing OS capability
+- phrase: اكتب متابعة لليد
+  expect: sales-lead-followup-manager
+  rule: R2
+  note: v1.4.0 Marketing OS capability
+- phrase: ابنِ حملة إطلاق
+  expect: marketing-campaign-director
+  rule: R2
+  note: v1.4.0 Marketing OS capability
+- phrase: احسب ROAS
+  expect: marketing-roi-analyst
+  rule: R2
+  note: v1.4.0 Marketing OS capability
+- phrase: طور SEO المحلي
+  expect: marketing-local-seo-geo-strategist
+  rule: R2
+  note: v1.4.0 Marketing OS capability
+- phrase: أريد الظهور في بحث الذكاء الاصطناعي
+  expect: marketing-local-seo-geo-strategist
+  rule: R2
+  note: v1.4.0 Marketing OS capability
+- phrase: كم تكلفة الحجز
+  expect: marketing-roi-analyst
+  rule: R2
+  note: v1.4.0 Marketing OS capability
+- phrase: هل يوجد تحديث للمساعد؟
+  expect: system-update-checker
+  rule: R2
+  note: v1.4.1 — فحص GitHub Latest Release
+- phrase: تحقق من التحديثات
+  expect: system-update-checker
+  rule: R2
+- phrase: ما آخر إصدار؟
+  expect: system-update-checker
+  rule: R2
+- phrase: check for updates
+  expect: system-update-checker
+  rule: R2

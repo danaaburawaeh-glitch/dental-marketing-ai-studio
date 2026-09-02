@@ -1,0 +1,22 @@
+{
+  "name": "assistant-studio",
+  "version": "1.4.1",
+  "description": "استوديو المساعدين — نظام محوكَم لبناء وتشغيل وصيانة مساعدين مخصصين داخل Claude، متخصص في إدارة العيادة والتسويق فقط: مخطط موحّد، دورة حياة، إصدارات دلالية، سياستان عامتان غير قابلتين للتجاوز (house-rules + clinical-firewall)، وتوجيه حتمي مختبَر. القرار السريري خارج نطاقه عمداً — انظر governance/scope-boundary.md. إصدار Marketing OS Standalone مع فاحص تحديثات مدمج: يعمل بالكامل بلا أي اعتماديات خاصة بحساب أو مساعدين أو ملفات خارج الحزمة — انظر governance/standalone-guarantee.md.",
+  "author": {
+    "name": "Assistant Studio"
+  },
+  "keywords": [
+    "assistant",
+    "governance",
+    "custom-gpt",
+    "skills",
+    "knowledge-base",
+    "routing",
+    "dental",
+    "arabic",
+    "marketing",
+    "clinic-management",
+    "non-clinical"
+  ],
+  "license": "MIT"
+}

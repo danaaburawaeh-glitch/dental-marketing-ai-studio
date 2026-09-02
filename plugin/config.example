@@ -1,0 +1,50 @@
+# config.example — Assistant Studio v1.4.0 Marketing OS Standalone Edition
+#
+# هذا الملف مرجعي فقط — لا يُقرأ آلياً بواسطة أي Skill أو Script في هذه
+# الحزمة، ولا حاجة لنسخه إلى `.env` أو أي ملف فعلي لتشغيل أي قدرة أساسية.
+#
+# لماذا لا يوجد `.env.example` بمفاتيح API؟
+# كل تكامل خارجي في هذه الحزمة (ChatPlace، Meta Ads، Windsor.ai، Canva،
+# Google Drive/Calendar، WebSearch) يُدار عبر نظام الموصّلات (Connectors)
+# الخاص بمنصة Cowork نفسها — تُفعَّل من إعدادات المنصة، لا من مفتاح API
+# يُكتَب داخل ملفات الإضافة. وضع مفاتيح وهمية هنا كان سيوحي بخطأ أن هذه
+# الحزمة تحتاج بيانات اعتماد مضمَّنة في الكود — وهي لا تحتاج، بتصميم صريح
+# (governance/portability.md § ٤ لا روابط خاصة، § ٦ لا اعتماديات مخفية).
+#
+# صفر مما يلي مطلوب لأي قدرة أساسية. كل سطر هنا اختياري بالكامل — غيابه
+# يفعّل Manual Execution Mode تلقائياً لتلك المهارة تحديداً
+# (governance/capability-detection.md).
+
+# ── التكاملات الاختيارية وكيف تُفعَّل ────────────────────────────────────
+#
+# التكامل         | يُفعَّل من                     | يُستخدَم بواسطة
+# ----------------|--------------------------------|--------------------------------------------
+# ChatPlace        | إعدادات Cowork → Connectors    | content-whatsapp-lead-responder،
+#                  |                                 | instagram-conversion-analyst وغيرها
+# Meta Ads         | إعدادات Cowork → Connectors    | مهارات تحليل instagram-*، marketing-strategy-planner
+# Windsor.ai       | إعدادات Cowork → Connectors    | instagram-data-analyst، instagram-conversion-analyst،
+#                  |                                 | marketing-strategy-planner
+# Canva            | إعدادات Cowork → Connectors    | content-social-calendar-scheduler،
+#                  |                                 | content-short-form-video-planner،
+#                  |                                 | content-case-post-reviewer
+# Google Drive/    | إعدادات Cowork → Connectors    | مهارات system-*، content-social-calendar-scheduler
+# Calendar         |                                 |
+# WebSearch/Fetch  | مفعَّل افتراضياً في Cowork       | مهارات بحث السوق/المنافسين في instagram-*
+
+# ── ما الذي يُخصَّص فعلياً في هذه الحزمة ─────────────────────────────────
+#
+# نقطة التخصيص الوحيدة ليست ملف تهيئة (config) بل ملف حوكمة عادي:
+#
+#     identity/house-rules.md  §١  (بروفايل العيادة)
+#
+# افتحيه واملئي الحقول ⟨...⟩ (اسم العيادة/التخصص، المدينة، النبرة، الكلمات
+# الممنوعة). التفاصيل الكاملة خطوة بخطوة في INSTALL.md.
+
+# ── التحقق ──────────────────────────────────────────────────────────────
+#
+# للتأكد أن الحزمة كما هي الآن لا تحتوي أي سر أو مفتاح API مضمَّن:
+#
+#     python3 tests/dependency-scan.py --root .
+#
+# النتيجة المتوقَّعة: "Required unresolved dependencies: 0" (يشمل فحص أسرار
+# صريح — انظر DEPENDENCIES.md § Automated verification).

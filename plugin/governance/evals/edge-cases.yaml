@@ -1,0 +1,57 @@
+# حالات حدّية — Edge Cases
+# ما لا تغطيه الحالات "النظيفة" في بقية governance/evals/. كل حالة هنا فحص
+# حتمي مباشر — legacy alias وdورة تفويض قابلة للفحص برمجياً بالكامل؛ الحالتان
+# الأخيرتان (تكرار الاستدعاء، المدخل الناقص) سلوك تنفيذ حي يفحصه المنسّق وقت
+# التشغيل وفق governance/orchestrator-config.yaml — مُسجَّلتان هنا كمواصفة
+# متوقَّعة، والفحص الآلي عليهما محدود بما هو حتمي (انظر ملاحظة كل حالة).
+
+meta:
+  suite_id: edge-cases
+  version: "1.0"
+  status: ACTIVE
+
+cases:
+
+  - id: legacy-alias-resolves
+    type: legacy_alias
+    old_id: 1-chief-growth-officer-inst
+    expect_canonical: instagram-funnel-diagnostician
+    note: من governance/migration-spec.yaml — يجب أن يبقى مقبولاً كمرجع تاريخي
+
+  - id: legacy-alias-resolves-2
+    type: legacy_alias
+    old_id: 9-content-architect-inst
+    expect_canonical: instagram-content-architect
+
+  - id: legacy-alias-unknown
+    type: legacy_alias
+    old_id: never-existed-alias-xyz
+    expect_canonical: null
+    note: alias غير موجود — يجب ألا يُحل إلى أي شيء، لا تخمين
+
+  - id: circular-delegation-synthetic
+    type: circular_detection    # يُشغَّل عبر scripts/orchestration_tests.py نفس محرك orchestration-golden-set
+    graph: {A: [B], B: [A]}
+    expect: CIRCULAR
+
+  - id: repeated-same-assistant-call
+    type: execution_limit
+    limit: max_same_assistant_calls
+    scenario: >
+      المنسّق يستدعي instagram-data-analyst مرتين بنفس المدخل تماماً (لا مدخل جديد،
+      لا سبب موثَّق) ضمن مسار واحد.
+    expect: BLOCKED
+    check: >
+      حتمي جزئياً — orchestration_tests.py يتحقق أن الحد نفسه (2) مقروء من
+      governance/orchestrator-config.yaml بشكل صحيح؛ اكتشاف "بلا سبب جديد" فعلياً
+      قرار دلالي وقت التشغيل، يُختبَر يدوياً أو بتشغيلة حية موثَّقة قبل ACTIVE.
+
+  - id: missing-critical-input
+    type: needs_input
+    scenario: '"نجرب إيش" بلا فرضية ولا ملاحظة أداء مذكورة إطلاقاً'
+    expect: NEEDS_INPUT
+    check: >
+      required_inputs لـ instagram-experimentation-manager تحوي "فرضية أو ملاحظة أداء" —
+      غيابها في الطلب = NEEDS_INPUT وفق القاعدة في SKILL.md. الفحص الآلي هنا يتحقق
+      أن الحقل required_inputs غير فارغ في metadata (شرط أساسي للفحص الحي لاحقاً)،
+      لا يُحاكي فهم اللغة الطبيعية لتحديد هل ذُكرت الفرضية فعلاً.

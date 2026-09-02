@@ -1,0 +1,38 @@
+# مجموعة الإقصاء الذهبية — Exclusions Golden Set
+# مستخرجة من governance/routing-tests.yaml — حالات القاعدة ٣ (النية قبل الكلمة)
+# والقاعدة ٤ (العبارات السالبة تُقصي). عبارة قريبة يجب ألا تصيب الجار.
+
+meta:
+  suite_id: exclusions-golden-set
+  version: "1.0"
+  source: governance/routing-tests.yaml
+  status: ACTIVE
+
+cases:
+  - phrase: رتبي محتوى الشهر
+    expect: EXTERNAL:drdana-short-form-video-plan
+    rule: R4
+    note: يجب أن تُقصى مهندس المحتوى وأخصائي الريلز وتُحال خارجاً
+  - phrase: كيف أرد على هذي الرسالة؟
+    expect: EXTERNAL:whatsapp-closing-specialist
+    rule: R4
+    note: يجب أن يُقصى محلل التحويل ويُحال إلى مساعد الردود
+  - phrase: راجع أرقام الحساب واعطيني خطة ٩٠ يوم
+    expect: EXTERNAL:dana-instagram-growth-director
+    rule: R4
+    note: مالكة الاستراتيجية خارج نطاق الترحيل — يجب أن تُقصى مهارات الفريق
+  - phrase: وش تقول الأرقام
+    expect: instagram-data-analyst
+    rule: R3
+    note: لا يجوز أن تذهب لمشخّص القمع
+  - phrase: وين ينكسر التحويل
+    expect: instagram-conversion-analyst
+    rule: R3
+    note: لا يجوز أن تذهب لمشخّص القمع رغم اشتراك مفهوم القمع
+  - phrase: راجعي أرقام الحساب واعطيني خطة ٩٠ يوم
+    expect: EXTERNAL:dana-instagram-growth-director
+    rule: R4
+    note: العبارة الكاملة تُقصي محلل البيانات وتُحيل لمالكة الاستراتيجية
+  - phrase: خطة فيديوهات
+    expect: EXTERNAL:drdana-short-form-video-plan
+    rule: R4

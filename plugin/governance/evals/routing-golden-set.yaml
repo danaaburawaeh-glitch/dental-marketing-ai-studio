@@ -1,0 +1,94 @@
+# مجموعة التوجيه الذهبية — Routing Golden Set
+# مستخرجة من governance/routing-tests.yaml (مصدرها الأصلي، لا يزال يُشغَّل كما هو
+# في خط الأنابيب القياسي). هذا التصنيف يفصل حالات "إصابة" (القاعدة ٢/٥/٦/٩) عن
+# حالات "إقصاء" (exclusions-golden-set.yaml) وفق governance/evaluation-policy.md.
+# لا حالة صورية هنا — كل حالة مأخوذة من انحدار حقيقي أو تشغيلة حقيقية.
+
+meta:
+  suite_id: routing-golden-set
+  version: "1.0"
+  source: governance/routing-tests.yaml
+  status: ACTIVE
+
+cases:
+  - phrase: ليش الحساب ما ينمو؟
+    expect: instagram-funnel-diagnostician
+    rule: R2
+    note: كانت 1-chief-growth-officer-inst
+  - phrase: كم معدل التفاعل؟
+    expect: instagram-data-analyst
+    rule: R2
+    note: كانت 2-instagram-data-analyst-inst
+  - phrase: ليش هذا المنشور نجح؟
+    expect: instagram-content-performance-analyst
+    rule: R2
+    note: كانت 4-content-performance-analyst-inst
+  - phrase: اكتبي لي ريل
+    expect: instagram-reel-strategist
+    rule: R2
+    note: كانت 5-reel-strategy-specialist-inst
+  - phrase: ابني نظام محتوى
+    expect: instagram-content-architect
+    rule: R2
+  - phrase: المتابعين ما يحجزون
+    expect: instagram-conversion-analyst
+    rule: R2
+  - phrase: تقرير الأسبوع
+    expect: instagram-weekly-growth-review
+    rule: R2
+  - phrase: مين جمهوري
+    expect: instagram-audience-analyst
+    rule: R2
+  - phrase: وش يسوون المنافسين
+    expect: instagram-competitor-analyst
+    rule: R2
+  - phrase: نجرب إيش
+    expect: instagram-experimentation-manager
+    rule: R2
+  - phrase: تموضعي
+    expect: instagram-personal-brand-strategist
+    rule: R2
+  - phrase: ابني لي مساعد
+    expect: system-assistant-builder
+    rule: R2
+  - phrase: وش المساعدين عندي
+    expect: system-assistant-directory
+    rule: R2
+  - phrase: احفظي هذا للمساعد
+    expect: system-knowledge-manager
+    rule: R2
+  - phrase: المساعد ما اشتغل
+    expect: system-assistant-tuner
+    rule: R2
+  - phrase: حللي الريلز
+    expect: instagram-reel-strategist
+    rule: R2
+    note: لا يجوز أن تذهب لمحلل أداء المحتوى
+  - phrase: ركائز المحتوى
+    expect: instagram-content-architect
+    rule: R2
+    note: لا يجوز أن تذهب لمحلل أداء المحتوى
+  - phrase: راجعي المنشور قبل النشر
+    expect: NO_MATCH
+    rule: LIFECYCLE
+    note: 'content-case-post-reviewer حالته TESTING — يجب ألا يدخل التوجيه التلقائي. يتحوّل التوقع إلى content-case-post-reviewer
+      فور اعتماده ACTIVE.
+
+      '
+  - phrase: كم الساعة الحين
+    expect: NO_MATCH
+    rule: R9
+    note: لا يُجبَر الطلب على أقرب مساعد
+  - phrase: أرقام الحساب
+    expect: instagram-data-analyst
+    rule: R2
+    note: 'العبارة القصيرة كانت تُقصى بخطأ لأنها جزء من عبارة سالبة طويلة. أُصلح بترجيح الطول في المطابقة،
+      وأُعيدت العبارة إلى triggers.
+
+      '
+  - phrase: راجعي البايو
+    expect: instagram-conversion-analyst
+    rule: R2
+  - phrase: وش أنشر بالضبط
+    expect: instagram-content-architect
+    rule: R2

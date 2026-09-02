@@ -1,0 +1,729 @@
+# مواصفة الترحيل — تقود scripts/migrate.py وتُشتق منها خريطة الترحيل.
+# مصدر الحقيقة أثناء الترحيل فقط؛ بعد التنفيذ تصبح metadata داخل SKILL.md هي المصدر.
+#
+# ملاحظة v1.3.0 Standalone: حقول `source:` أدناه هي بيانات منشأ (provenance)
+# تاريخية — تسجّل من أين هُوجر كل مساعد وقت الترحيل الأصلي، ولا تُقرأ في وقت
+# التشغيل من أي Skill أو Script. بعضها مسارات مطلقة كانت خاصة ببيئة عمل
+# المُنشئ الأصلي؛ أُبقيت كسجل تاريخي فقط لأنها بلا أي أثر تشغيلي على أي
+# مستخدم آخر لهذه الحزمة (انظر tests/dependency-scan.py الذي يستثنيها صراحة).
+
+meta:
+  spec_version: "1.0.0"
+  generated: "2026-08-21"
+  phase: foundation-hardening
+
+# ── نطاقات الحوكمة ────────────────────────────────────────────────────────────
+tiers:
+  T1_studio_uninstalled:
+    description: مهارات الاستوديو — نسخة عمل فقط، غير مثبتة في الحساب
+    risk: LOW
+    rationale: لا اعتمادية على حالة الحساب؛ الترحيل لا يكسر شيئاً قائماً
+  T2_studio_installed:
+    description: فريق نمو انستغرام — محفوظ فعلياً في حساب الطبيب/ة
+    risk: MEDIUM
+    rationale: >
+      المراجع كلها داخل ملفات نتحكم بها، لكن تغيير المعرّف يستلزم خطوة يدوية
+      واحدة (حذف النسخ القديمة من الحساب) وإلا نشأ ازدواج نشط.
+  T3_dana_authored_ungoverned:
+    description: مهارات كتبتها الطبيب/ة قبل الاستوديو، ولها مراجع خارج سيطرتنا
+    risk: HIGH
+    rationale: مراجع نصية متبادلة مع مهارات لا تُرحَّل في هذه المرحلة
+    action: REVIEW
+  T4_vendor:
+    description: مهارات Anthropic والحزم الجاهزة
+    risk: OUT_OF_SCOPE
+    action: KEEP
+
+# ── الترحيلات المنفَّذة ────────────────────────────────────────────────────────
+assistants:
+
+  - old_id: new-assistant
+    canonical_id: system-assistant-builder
+    action: RENAME
+    tier: T1_studio_uninstalled
+    risk: LOW
+    reason: المعرّف بلا مجال، و«new» صفة حالة لا وظيفة
+    source: /home/claude/assistant-studio/skills/new-assistant
+    metadata:
+      display_name: صانع المساعدين
+      domain: system
+      role: builder
+      purpose: بناء مساعد مخصص جديد من مقابلة إلى ملف skill مختبَر وجاهز للتثبيت
+      triggers: ["ابني لي مساعد", "أبغى مساعد جديد", "سوّي لي موظف", "حوّلي هذا لمهارة", "build me an assistant", "create a new assistant", "turn this into a skill"]
+      negative_triggers:
+        - {match: "عدّلي المساعد الموجود", route_to: system-assistant-tuner}
+        - {match: "وش المساعدين عندي", route_to: system-assistant-directory}
+        - {match: "احفظي هذا للمساعد", route_to: system-knowledge-manager}
+      required_inputs: ["المهمة الواحدة", "عبارات التشغيل", "شكل المخرَج", "المستخدم النهائي"]
+      optional_inputs: ["ملفات معرفة", "موصّلات مطلوبة"]
+      outputs: ["بطاقة تصميم", "SKILL.md مكتمل المخطط", "نتيجة الفحص", "ملف .skill", "قيد في الدليل"]
+      knowledge_dependencies: ["knowledge/assistants-registry.md"]
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: []
+      tool_dependencies: ["bash", "write"]
+      can_delegate_to: [system-knowledge-manager]
+      cannot_delegate_to: []
+      routing_priority: 75
+      safety_level: MODERATE
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: "2026-08-21"
+
+  - old_id: assistant-directory
+    canonical_id: system-assistant-directory
+    action: RENAME
+    tier: T1_studio_uninstalled
+    risk: LOW
+    reason: توحيد بادئة المجال
+    source: /home/claude/assistant-studio/skills/assistant-directory
+    metadata:
+      display_name: دليل المساعدين
+      domain: system
+      role: router
+      purpose: عرض المساعدين المتاحين وتوجيه الطلب إلى الصحيح منهم وفق سياسة التوجيه
+      triggers: ["وش المساعدين عندي", "اعرضي المساعدين", "مين يساعدني في", "افتحي الاستوديو", "list my assistants", "which assistant should I use"]
+      negative_triggers:
+        - {match: "ابني لي مساعد جديد", route_to: system-assistant-builder}
+        - {match: "المساعد ما اشتغل", route_to: system-assistant-tuner}
+      required_inputs: ["الدليل من الـ Project"]
+      optional_inputs: ["الطلب المراد توجيهه"]
+      outputs: ["جدول المساعدين حسب المجال", "المساعد المختار وسبب اختياره"]
+      knowledge_dependencies: ["knowledge/assistants-registry.md"]
+      policy_dependencies: ["house-rules", "routing-policy"]
+      skill_dependencies: []
+      tool_dependencies: ["projects"]
+      can_delegate_to: []
+      cannot_delegate_to: []
+      routing_priority: 90
+      safety_level: MODERATE
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: "2026-08-21"
+
+  - old_id: assistant-knowledge
+    canonical_id: system-knowledge-manager
+    action: RENAME
+    tier: T1_studio_uninstalled
+    risk: LOW
+    reason: المعرّف يصف موضوعاً لا وظيفة
+    source: /home/claude/assistant-studio/skills/assistant-knowledge
+    metadata:
+      display_name: قاعدة معرفة المساعدين
+      domain: system
+      role: knowledge-manager
+      purpose: تحويل الملفات إلى معرفة دائمة منظّمة داخل الـ Project وربطها بالمساعدين وصيانة فهرسها
+      triggers: ["احفظي هذا للمساعد", "ضيفي هذا لقاعدة المعرفة", "خليه يعرف هذا", "حدّثي الأسعار", "add this to the knowledge base", "make the assistant remember this"]
+      negative_triggers:
+        - {match: "ابني لي مساعد", route_to: system-assistant-builder}
+        - {match: "وش المساعدين عندي", route_to: system-assistant-directory}
+      required_inputs: ["المحتوى أو الملف", "المساعد المستفيد"]
+      optional_inputs: ["موعد المراجعة"]
+      outputs: ["ملف معرفة بترويسة موحّدة", "قيد في الفهرس", "ربط في تعليمات المساعد"]
+      knowledge_dependencies: ["knowledge/INDEX.md"]
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: []
+      tool_dependencies: ["projects", "pdf", "docx", "xlsx"]
+      can_delegate_to: []
+      cannot_delegate_to: []
+      routing_priority: 75
+      safety_level: HIGH
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: "2026-08-21"
+
+  - old_id: assistant-tuning
+    canonical_id: system-assistant-tuner
+    action: RENAME
+    tier: T1_studio_uninstalled
+    risk: LOW
+    reason: توحيد بادئة المجال وتحويل الاسم من مصدر إلى دور
+    source: /home/claude/assistant-studio/skills/assistant-tuning
+    metadata:
+      display_name: صيانة وتحسين المساعدين
+      domain: system
+      role: maintainer
+      purpose: تشخيص سبب فشل مساعد في التشغيل أو المخرَج وإصلاح الموضع المسبِّب وحده وإعادة اختباره
+      triggers: ["المساعد ما اشتغل", "اشتغل المساعد الغلط", "عدّلي المساعد", "ردّه صار سيئ", "fix my assistant", "the wrong skill triggered", "update the skill"]
+      negative_triggers:
+        - {match: "ابني لي مساعد جديد", route_to: system-assistant-builder}
+        - {match: "احفظي هذي المعلومة للمساعد", route_to: system-knowledge-manager}
+      required_inputs: ["ما قيل حرفياً", "ما كان متوقعاً", "ما حصل فعلاً"]
+      optional_inputs: []
+      outputs: ["تشخيص بسطر", "التعديل الأصغر الكافي", "نتيجة إعادة الاختبار", "إصدار مرفوع"]
+      knowledge_dependencies: ["knowledge/assistants-registry.md"]
+      policy_dependencies: ["house-rules", "routing-policy"]
+      skill_dependencies: []
+      tool_dependencies: ["bash", "edit"]
+      can_delegate_to: [system-knowledge-manager]
+      cannot_delegate_to: []
+      routing_priority: 75
+      safety_level: MODERATE
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: "2026-08-21"
+
+  - old_id: case-post-reviewer
+    canonical_id: content-case-post-reviewer
+    action: RENAME
+    tier: T1_studio_uninstalled
+    risk: LOW
+    reason: بلا بادئة مجال؛ ولم يُحفظ في الحساب بعد فلا اعتمادية قائمة
+    source: /home/claude/demo/case-post-reviewer
+    metadata:
+      display_name: مراجع منشورات الحالات
+      domain: content
+      role: compliance-reviewer
+      purpose: فحص مسوّدة منشور حالة قبل النشر مقابل الموافقة والخصوصية والادعاءات الطبية والامتثال الإعلاني
+      triggers: ["راجعي المنشور قبل النشر", "هذا الكابشن تمام", "أبغى أنشر حالة", "فحص قبل النشر", "review this post before I publish", "is this case post compliant"]
+      negative_triggers:
+        - {match: "اكتبي لي ريل", route_to: instagram-reel-strategist}
+        - {match: "ابني نظام محتوى", route_to: instagram-content-architect}
+        - {match: "عدّلي صور الحالة", route_to: smile-doc-standardizer}
+      required_inputs: ["نص المنشور", "هل فيه صورة حالة", "حالة الموافقة الخطية"]
+      optional_inputs: ["هل المنشور مموّل"]
+      outputs: ["الحكم", "جدول ما يجب تغييره", "النسخة المصححة", "قائمة تحقق قبل النشر"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: []
+      tool_dependencies: ["drive", "websearch"]
+      can_delegate_to: []
+      cannot_delegate_to: []
+      routing_priority: 95
+      safety_level: CRITICAL
+      status: TESTING
+      version: "1.0.0"
+      created_at: "2026-08-21"
+      notes: >
+        حالته TESTING لا ACTIVE — لم يُحفظ في الحساب ولم تُجرَ عليه تشغيلة حقيقية
+        على منشور فعلي. يُرفع إلى ACTIVE بعد أول تشغيلة تعتمدها الطبيب/ة.
+
+  - old_id: 1-chief-growth-officer-inst
+    canonical_id: instagram-funnel-diagnostician
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: >
+      بادئة رقم تسلسلي ولاحقة مبتورة؛ والاسم القديم يصف رتبة لا وظيفة —
+      الوظيفة الفعلية بعد ترقية 0.2.0 هي تشخيص نقطة تسرّب القمع لا قيادة الفريق
+    source: /home/claude/growth/1-chief-growth-officer-inst
+    metadata:
+      display_name: مشخّص قمع النمو
+      domain: instagram
+      role: diagnostician
+      purpose: تحديد نقطة التسرّب الواحدة في قمع النمو وإخراج أمر تنفيذي واحد بقاعدة قرار
+      triggers: ["ليش الحساب ما ينمو", "وين المشكلة", "وين نخسر الناس", "الأرقام نازلة", "المدى عالي والمتابعين قليل", "why isn't my account growing", "where is the funnel leaking"]
+      negative_triggers:
+        - {match: "راجعي أرقام الحساب واعطيني خطة ٩٠ يوم", route_to: dana-instagram-growth-director}
+        - {match: "تقرير الأسبوع", route_to: instagram-weekly-growth-review}
+        - {match: "كم معدل التفاعل", route_to: instagram-data-analyst}
+      required_inputs: ["مؤشرات مراحل القمع", "فترة مقارنة"]
+      optional_inputs: []
+      outputs: ["نقطة التسرّب", "الدليل", "الفرضية", "إجراء واحد", "قاعدة القرار"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: [instagram-data-analyst]
+      tool_dependencies: ["windsor", "meta-ads", "chatplace"]
+      can_delegate_to: []
+      cannot_delegate_to: [instagram-weekly-growth-review]
+      routing_priority: 68
+      safety_level: MODERATE
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+
+  - old_id: 2-instagram-data-analyst-inst
+    canonical_id: instagram-data-analyst
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: بادئة رقم تسلسلي ولاحقة مبتورة؛ الوظيفة مطابقة للمعرّف الجديد
+    source: /home/claude/growth/2-instagram-data-analyst-inst
+    metadata:
+      display_name: محلل بيانات انستغرام
+      domain: instagram
+      role: data-analyst
+      purpose: حساب مؤشرات الحساب ومعدلاته ومقارنتها بالفترة السابقة، بلا تفسير محتوى وبلا توصيات
+      triggers: ["وش تقول الأرقام", "احسبي المعدلات", "قارني هالأسبوع بالسابق", "كم معدل التفاعل", "أرقام الحساب", "حللي الإحصائيات", "what do the numbers say", "calculate my engagement rate"]
+      negative_triggers:
+        - {match: "ليش هذا المنشور نجح", route_to: instagram-content-performance-analyst}
+        - {match: "ليش الحساب ما ينمو", route_to: instagram-funnel-diagnostician}
+        - {match: "راجعي أرقام الحساب واعطيني خطة ٩٠ يوم", route_to: dana-instagram-growth-director}
+      required_inputs: ["فترة زمنية", "مصدر بيانات متاح"]
+      optional_inputs: ["فترة مقارنة"]
+      outputs: ["جدول مؤشرات", "ثلاث ملاحظات", "سؤال قابل للاختبار"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: []
+      tool_dependencies: ["windsor", "meta-ads", "chatplace"]
+      can_delegate_to: []
+      cannot_delegate_to: []
+      routing_priority: 65
+      safety_level: MODERATE
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+
+  - old_id: 3-audience-intelligence-analyst-insta
+    canonical_id: instagram-audience-analyst
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: بادئة رقم تسلسلي ولاحقة مبتورة؛ و«intelligence» لا تضيف معنى
+    source: /home/claude/growth/3-audience-intelligence-analyst-insta
+    metadata:
+      display_name: محلل ذكاء الجمهور
+      domain: instagram
+      role: audience-analyst
+      purpose: تقسيم الجمهور إلى شرائح وتحديد الشريحة ذات الأولوية بلغة الجمهور نفسه
+      triggers: ["مين جمهوري", "مين يتابعني فعلاً", "لمن أوجه المحتوى", "مين أستهدف", "who is my audience", "audience segments"]
+      negative_triggers:
+        - {match: "المتابعين ما يحجزون", route_to: instagram-conversion-analyst}
+        - {match: "وش نجح من المحتوى", route_to: instagram-content-performance-analyst}
+      required_inputs: ["بيانات الجمهور أو الرسائل والتعليقات"]
+      optional_inputs: []
+      outputs: ["تركيبة الجمهور", "الشريحة ذات الأولوية", "عبارات بلغتهم", "توصيات للمحتوى", "الفجوة"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: []
+      tool_dependencies: ["windsor", "chatplace"]
+      can_delegate_to: [instagram-content-architect]
+      cannot_delegate_to: []
+      routing_priority: 65
+      safety_level: MODERATE
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+
+  - old_id: 4-content-performance-analyst-inst
+    canonical_id: instagram-content-performance-analyst
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: بادئة رقم تسلسلي ولاحقة مبتورة
+    source: /home/claude/growth/4-content-performance-analyst-inst
+    metadata:
+      display_name: محلل أداء المحتوى
+      domain: instagram
+      role: performance-analyst
+      purpose: استخراج آلية نجاح المحتوى وفشله وتحويلها إلى صيغ قابلة للتكرار بعدد شواهد معلن
+      triggers: ["وش نجح من المحتوى", "ليش هذا المنشور نجح", "ليش هذا ما مشى", "وش أكرر ووش أوقف", "which content worked and why", "why did this post flop"]
+      negative_triggers:
+        - {match: "كم معدل التفاعل", route_to: instagram-data-analyst}
+        - {match: "اكتبي لي ريل", route_to: instagram-reel-strategist}
+      required_inputs: ["قائمة المحتوى المنشور وأرقامه"]
+      optional_inputs: []
+      outputs: ["أعلى ٥", "أدنى ٥", "الصيغ الرابحة بعدد شواهدها", "كرري·عدّلي·أوقفي", "فرضية للاختبار"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: [instagram-data-analyst]
+      tool_dependencies: ["windsor", "meta-ads"]
+      can_delegate_to: [instagram-experimentation-manager]
+      cannot_delegate_to: []
+      routing_priority: 65
+      safety_level: MODERATE
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+
+  - old_id: 5-reel-strategy-specialist-inst
+    canonical_id: instagram-reel-strategist
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: بادئة رقم تسلسلي ولاحقة مبتورة؛ و«strategy-specialist» تكرار
+    source: /home/claude/growth/5-reel-strategy-specialist-inst
+    metadata:
+      display_name: أخصائي استراتيجية الريلز
+      domain: instagram
+      role: reel-strategist
+      purpose: تحليل الريلز بأول ٣ ثوانٍ ومنحنى الاحتفاظ، وكتابة ريل جاهز للتصوير ببنية مثبتة
+      triggers: ["حللي الريلز", "ليش الريل ما مشى", "اكتبي لي ريل", "خطّاف قوي", "سكربت ريل", "write me a reel script", "fix my hook"]
+      negative_triggers:
+        - {match: "رتبي محتوى الشهر", route_to: drdana-short-form-video-plan}
+        - {match: "وش نجح من المحتوى كله", route_to: instagram-content-performance-analyst}
+        - {match: "راجعي هذا الريل قبل النشر", route_to: content-case-post-reviewer}
+      required_inputs: ["ريل للتحليل أو موضوع للكتابة"]
+      optional_inputs: ["منحنى الاحتفاظ", "الهدف المطلوب"]
+      outputs: ["البنية المستخدمة وشواهدها", "خطّاف ثلاثي الطبقات", "مشاهد", "كابشن", "نص غلاف", "ملاحظات تصوير"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: []
+      tool_dependencies: ["windsor", "meta-ads"]
+      can_delegate_to: [content-case-post-reviewer]
+      cannot_delegate_to: []
+      routing_priority: 70
+      safety_level: HIGH
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+
+  - old_id: 6-personal-brand-strategist-inst
+    canonical_id: instagram-personal-brand-strategist
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: بادئة رقم تسلسلي ولاحقة مبتورة
+    source: /home/claude/growth/6-personal-brand-strategist-inst
+    metadata:
+      display_name: استراتيجي العلامة الشخصية
+      domain: instagram
+      role: brand-strategist
+      purpose: بناء تموضع الطبيب/ة وجملة العلامة الواحدة ومزيج الأوجه، من دليل لا من طموح
+      triggers: ["تموضعي", "كيف يشوفوني الناس", "حسابي صار إعلانات", "هويتي كعلامة", "my personal brand", "positioning statement"]
+      negative_triggers:
+        - {match: "خطة تسويقية كاملة", route_to: marketing-strategy-director}
+        - {match: "لينكدإن", route_to: linkedin-strategy}
+        - {match: "ابني نظام محتوى", route_to: instagram-content-architect}
+      required_inputs: ["دليل الإدراك الحالي: تعليقات أو رسائل أو أداء محتوى"]
+      optional_inputs: ["تحليل منافسين"]
+      outputs: ["كيف تُدرَك اليوم", "جملة التموضع ونتيجة اختبارها", "ما نملكه حصراً", "مزيج الأوجه", "ما يجب إيقافه"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: [instagram-content-performance-analyst, instagram-competitor-analyst]
+      tool_dependencies: ["chatplace"]
+      can_delegate_to: []
+      cannot_delegate_to: []
+      routing_priority: 65
+      safety_level: HIGH
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+
+  - old_id: 7-competitor-intelligence-analyst-insta
+    canonical_id: instagram-competitor-analyst
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: بادئة رقم تسلسلي ولاحقة مبتورة؛ و«intelligence» لا تضيف معنى
+    source: /home/claude/growth/7-competitor-intelligence-analyst-insta
+    metadata:
+      display_name: محلل ذكاء المنافسين
+      domain: instagram
+      role: competitor-analyst
+      purpose: استخراج آليات نجاح الحسابات المرجعية والفجوات القابلة للامتلاك، لغرض داخلي لا للنشر
+      triggers: ["حللي هذا الحساب", "وش يسوون المنافسين", "وين الفجوة في السوق", "analyze this competitor", "find the market gap"]
+      negative_triggers:
+        - {match: "حوّلي هذا لخطة محتوى", route_to: instagram-content-architect}
+        - {match: "تموضعي أنا", route_to: instagram-personal-brand-strategist}
+      required_inputs: ["حساب أو أكثر للمقارنة"]
+      optional_inputs: []
+      outputs: ["الحسابات المدروسة", "الآليات", "جدول الفجوات", "الفئة المقترح امتلاكها", "ما لا يُقلَّد"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: []
+      tool_dependencies: ["websearch", "meta-ads"]
+      can_delegate_to: [instagram-content-architect]
+      cannot_delegate_to: []
+      routing_priority: 65
+      safety_level: MODERATE
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+      notes: ممنوع إنتاج محتوى يقارن الطبيب/ة بطبيب آخر — قيد مهني وتنظيمي في الجسم
+
+  - old_id: 8-growth-experimentation-manager-inst
+    canonical_id: instagram-experimentation-manager
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: بادئة رقم تسلسلي ولاحقة مبتورة
+    source: /home/claude/growth/8-growth-experimentation-manager-inst
+    metadata:
+      display_name: مدير تجارب النمو
+      domain: instagram
+      role: experimentation-manager
+      purpose: تصميم تجربة بمتغير واحد وقاعدة قرار مكتوبة مسبقاً، وقراءة نتيجتها بحكم صريح
+      triggers: ["نجرب إيش", "أبغى أختبر", "خطّاف A ولا B", "نتيجة التجربة", "run an experiment", "A/B test my hooks"]
+      negative_triggers:
+        - {match: "ليش الحساب ما ينمو", route_to: instagram-funnel-diagnostician}
+        - {match: "كم معدل التفاعل", route_to: instagram-data-analyst}
+      required_inputs: ["فرضية أو ملاحظة أداء"]
+      optional_inputs: ["نتائج تجربة سابقة"]
+      outputs: ["بطاقة تجربة كاملة", "جدول النتيجة", "حكم واحد", "ما تعلمناه", "التجربة التالية"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: [instagram-data-analyst]
+      tool_dependencies: ["windsor", "meta-ads", "projects"]
+      can_delegate_to: []
+      cannot_delegate_to: []
+      routing_priority: 65
+      safety_level: MODERATE
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+
+  - old_id: 9-content-architect-inst
+    canonical_id: instagram-content-architect
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: بادئة رقم تسلسلي ولاحقة مبتورة
+    source: /home/claude/growth/9-content-architect-inst
+    metadata:
+      display_name: مهندس المحتوى
+      domain: instagram
+      role: content-architect
+      purpose: بناء نظام محتوى من ٥ إلى ٧ ركائز بمزيج نشر بنِسَب مبررة، بلا جدولة زمنية
+      triggers: ["ابني نظام محتوى", "ركائز المحتوى", "وش أنشر بالضبط", "محتواي عشوائي", "build my content system", "content pillars"]
+      negative_triggers:
+        - {match: "تقويم نشر بتواريخ", route_to: social-media-calendar}
+        - {match: "خطة فيديوهات ٣٠ يوم", route_to: drdana-short-form-video-plan}
+        - {match: "ليش هذا المنشور نجح", route_to: instagram-content-performance-analyst}
+      required_inputs: ["الشريحة ذات الأولوية", "الصيغ الرابحة", "جملة التموضع"]
+      optional_inputs: ["فجوات السوق"]
+      outputs: ["النظام في سطر", "جدول الركائز الثماني الحقول", "المزيج بنِسَب", "أسبوع نموذجي", "ما نتوقف عنه"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: [instagram-audience-analyst, instagram-content-performance-analyst, instagram-personal-brand-strategist, instagram-competitor-analyst]
+      tool_dependencies: ["projects"]
+      can_delegate_to: []
+      cannot_delegate_to: [instagram-audience-analyst, instagram-competitor-analyst]
+      routing_priority: 65
+      safety_level: HIGH
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+      notes: >
+        cannot_delegate_to يمنع دورة محتملة — المحللان يحيلان إليه، فلا يحيل إليهما
+        أثناء التنفيذ؛ علاقتهما به مدخلات (skill_dependencies) لا تفويض.
+
+  - old_id: 10-conversion-analyst-inst
+    canonical_id: instagram-conversion-analyst
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: بادئة رقم تسلسلي ولاحقة مبتورة
+    source: /home/claude/growth/10-conversion-analyst-inst
+    metadata:
+      display_name: محلل التحويل
+      domain: instagram
+      role: conversion-analyst
+      purpose: تحديد نقطة انكسار الطريق إلى الحجز ومراجعة البروفايل بوصفه أداة تحويل
+      triggers: ["المتابعين ما يحجزون", "راجعي البايو", "ليش ما أحد يراسل", "وين ينكسر التحويل", "followers don't book", "review my bio"]
+      negative_triggers:
+        - {match: "كيف أرد على هذي الرسالة", route_to: whatsapp-closing-specialist}
+        - {match: "ليش المدى نازل", route_to: instagram-funnel-diagnostician}
+        - {match: "مين جمهوري", route_to: instagram-audience-analyst}
+      required_inputs: ["مؤشرات أسفل القمع أو لقطة البروفايل"]
+      optional_inputs: ["زمن الرد على الرسائل"]
+      outputs: ["نقطة الانكسار", "اختبار الخمس ثوانٍ", "جدول إصلاحات البروفايل", "إجراء أول", "طريقة القياس"]
+      knowledge_dependencies: []
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: []
+      tool_dependencies: ["windsor", "chatplace"]
+      can_delegate_to: []
+      cannot_delegate_to: []
+      routing_priority: 68
+      safety_level: HIGH
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+
+  - old_id: 11-weekly-growth-meeting-inst
+    canonical_id: instagram-weekly-growth-review
+    action: RENAME
+    tier: T2_studio_installed
+    risk: MEDIUM
+    reason: بادئة رقم تسلسلي ولاحقة مبتورة؛ و«review» أدق من «meeting» لوصف المخرَج
+    source: /home/claude/growth/11-weekly-growth-meeting-inst
+    metadata:
+      display_name: اجتماع النمو الأسبوعي
+      domain: instagram
+      role: weekly-review
+      purpose: تجميع مخرجات فريق النمو في تقرير أسبوعي ينتهي بخمسة إجراءات مرحَّلة ومراجَعة
+      triggers: ["اجتماع الأسبوع", "تقرير الأسبوع", "اجمعي الفريق", "الملخص الأسبوعي", "weekly growth meeting", "weekly report"]
+      negative_triggers:
+        - {match: "خطة ٩٠ يوم", route_to: dana-instagram-growth-director}
+        - {match: "ليش الحساب ما ينمو", route_to: instagram-funnel-diagnostician}
+      required_inputs: ["مخرجات الأسبوع من التخصصات المتاحة"]
+      optional_inputs: ["إجراءات الأسبوع السابق"]
+      outputs: ["اكتمال البيانات", "عشرة أقسام", "خمسة إجراءات بجدول", "أرشفة في الـ Project"]
+      knowledge_dependencies: ["knowledge/growth-weekly/"]
+      policy_dependencies: ["house-rules"]
+      skill_dependencies: []
+      tool_dependencies: ["projects", "windsor", "meta-ads", "chatplace"]
+      can_delegate_to: [instagram-data-analyst, instagram-content-performance-analyst, instagram-reel-strategist, instagram-audience-analyst, instagram-personal-brand-strategist, instagram-competitor-analyst, instagram-experimentation-manager, instagram-conversion-analyst]
+      cannot_delegate_to: [instagram-funnel-diagnostician]
+      routing_priority: 60
+      safety_level: MODERATE
+      status: ACTIVE
+      version: "1.0.0"
+      created_at: unknown
+
+# ── عناصر لا تُرحَّل في هذه المرحلة ───────────────────────────────────────────
+deferred:
+  - id: dana-instagram-growth-director
+    action: DANGLING_REFERENCE_REMOVED
+    tier: T3_dana_authored_ungoverned
+    risk: HIGH
+    reason: >
+      تحقُّق مباشر عبر ListSkills بتاريخ 2026-08-28 أثبت أن هذا المعرّف غير موجود
+      في حساب الطبيب/ة حالياً بأي اسم — لا تحت هذا الاسم ولا أي نسخة قديمة مرقّمة
+      (كان يُفترض أنه أحد الإحدى عشرة القديمة المذكورة في README § البدء ٢).
+      الافتراض السابق هنا (أنه موجود وينتظر إعادة تسمية في مرحلة ثانية) لم يعد
+      صحيحاً — يبدو أنه حُذف دون بديل، لا أُعيد تسميته.
+    referenced_by_external: [drdana-short-form-video-plan, short-form-video-plan]
+    fixed_internal_references:
+      description: >
+        instagram-data-analyst و instagram-funnel-diagnostician و
+        instagram-weekly-growth-review كانت تحيل طلب "استراتيجية ٩٠ يوماً" إلى
+        هذا المعرّف الميت. صُحح route_to في الثلاثة إلى system-assistant-builder
+        (لا مساعد يغطي هذا النطاق حالياً في الاستوديو) — 2026-08-28.
+    unblock_condition: >
+      إن أرادت الطبيب/ة مساعد "استراتيجية ٩٠ يوماً/مراجعة دورية عميقة"، يُبنى من
+      الصفر عبر system-assistant-builder — لا يُفترض وجود نسخة قديمة قابلة للاسترجاع.
+    note_external: >
+      drdana-short-form-video-plan و short-form-video-plan (خارج هذا الاستوديو،
+      خارج سيطرتنا) لا تزالان تذكران هذا المعرّف نصياً في وصفهما — لا يمكن تعديلهما
+      من هنا؛ تحتاج مراجعة يدوية من الطبيب/ة إن أرادت تصحيحهما أيضاً.
+
+  - id: drdana-short-form-video-plan
+    action: RESOLVED_INTERNAL_V1.3.0
+    tier: T3_dana_authored_ungoverned
+    risk: HIGH
+    reason: اسم شخص في المعرّف، ومرجع متبادل مع نسخة مكررة ومع مدير النمو
+    proposed_canonical_id: content-short-form-video-planner
+    resolution: >
+      v1.3.0 (Standalone): بُنيت Skill داخلية جديدة بالاسم الكانوني المقترَح هنا
+      حرفياً — content-short-form-video-planner — داخل مجال content (لا patient، غير
+      وارد أصلاً لهذا المعرّف). كل route_to في instagram-content-architect و
+      instagram-reel-strategist أُعيد توجيهه إليها. حُسم بلا حاجة لحسم duplicates
+      أولاً — Skill داخلية جديدة كلياً لا إعادة تسمية لمعرّف حساب قديم.
+
+  - id: chief-advertising-officer-cao
+    action: REVIEW
+    tier: T3_dana_authored_ungoverned
+    risk: MEDIUM
+    reason: لاحقة اختصار مبهم (cao)، ولم يخضع لترقية وصف بعد؛ لا يُلمس قبل ترقيته
+    proposed_canonical_id: marketing-advertising-director
+    note_v1.3.0: >
+      لا مرجع حي إليه في أي SKILL.md أو governance حالياً (تحقُّق شامل 2026-08-28) —
+      معلوماتي بحت، لا أثر على Standalone Required Dependencies. تُرك REVIEW كما هو.
+
+  - id: whatsapp-closing-specialist
+    action: RESOLVED_INTERNAL_V1.3.0
+    tier: T3_dana_authored_ungoverned
+    risk: LOW
+    reason: >
+      معرّف وصفي سليم، لكن المجال المقترَح هنا (patient) خارج نطاق هذا الاستوديو —
+      governance/scope-boundary.md يمنع domain: patient صراحة لهذه الإضافة.
+    proposed_canonical_id: patient-inquiry-closer
+    resolution: >
+      v1.3.0 (Standalone): بُنيت Skill داخلية جديدة content-whatsapp-lead-responder
+      داخل مجال content (لا patient — المجال المقترَح هنا كان يفترض توسّعاً لم
+      يحدث). instagram-conversion-analyst أُعيد توجيه negative_trigger الخاص بها إليها.
+
+  - id: smile-doc-standardizer
+    action: RESOLVED_INTERNAL_V1.3.0
+    tier: T3_dana_authored_ungoverned
+    risk: LOW
+    reason: معرّف وصفي مقبول، لكن المجال المقترَح هنا (patient) خارج نطاق هذا الاستوديو.
+    proposed_canonical_id: patient-case-photo-standardizer
+    resolution: >
+      v1.3.0 (Standalone): لم تُبنَ Skill منفصلة — القدرة (توحيد صور الحالة بصرياً)
+      دُمجت داخل content-case-post-reviewer القائمة (نفس المدخل: صورة حالة، نفس
+      بوابة الموافقة، نفس مجال content) تفادياً لتضخم غير مبرَّر (§32 من طلب الترقية).
+      negative_trigger القديم إليها أُزيل واستُبدل بـ trigger داخلي مباشر.
+
+  - id: dr-dana-medical-dental-english
+    action: KEEP
+    tier: T3_dana_authored_ungoverned
+    risk: LOW
+    reason: اسم شخص في المعرّف، لكن لا اعتمادية عليه ولا ضرر قائم؛ يؤجَّل لمجال research
+    proposed_canonical_id: research-dental-english-editor
+    note_v1.3.0: >
+      لا مرجع حي إليه في أي SKILL.md أو governance حالياً (تحقُّق شامل 2026-08-28) —
+      معلوماتي بحت، لا أثر على Standalone Required Dependencies. تُرك KEEP كما هو؛
+      لو أُريد بناؤه مستقبلاً فمجاله research خارج نطاق هذا الاستوديو أصلاً
+      (governance/scope-boundary.md) فلا يُبنى هنا مهما حدث.
+
+  - id: marketing-strategy-director
+    action: RESOLVED_INTERNAL_V1.3.0
+    tier: T3_dana_authored_ungoverned
+    risk: HIGH
+    reason: >
+      لم يكن مذكوراً في migration-spec.yaml الأصلي — اكتُشف أثناء تدقيق الاعتماديات
+      لـ v1.3.0 (Standalone) عبر فحص شامل لكل negative_triggers، لا افتراضاً أنه
+      المعرّف الوحيد المفقود.
+    proposed_canonical_id: marketing-strategy-planner
+    resolution: >
+      v1.3.0 (Standalone): بُنيت Skill داخلية جديدة marketing-strategy-planner داخل
+      مجال marketing. instagram-personal-brand-strategist أُعيد توجيه negative_trigger
+      الخاص بها إليها.
+
+  - id: linkedin-strategy
+    action: RESOLVED_INTERNAL_V1.3.0
+    tier: T3_dana_authored_ungoverned
+    risk: MEDIUM
+    reason: مثل marketing-strategy-director أعلاه — اكتُشف أثناء تدقيق v1.3.0.
+    proposed_canonical_id: marketing-strategy-planner
+    resolution: >
+      v1.3.0 (Standalone): لم تُبنَ Skill منفصلة للينكدإن — دُمجت كقناة ضمن
+      marketing-strategy-planner (§ «لينكدإن كقناة») تفادياً لتضخم غير مبرَّر، بدل
+      استراتيجية منفصلة قائمة بذاتها لقناة واحدة.
+
+  - id: social-media-calendar
+    action: RESOLVED_INTERNAL_V1.3.0
+    tier: T3_dana_authored_ungoverned
+    risk: HIGH
+    reason: مثل marketing-strategy-director أعلاه — اكتُشف أثناء تدقيق v1.3.0.
+    proposed_canonical_id: content-social-calendar-scheduler
+    resolution: >
+      v1.3.0 (Standalone): بُنيت Skill داخلية جديدة content-social-calendar-scheduler
+      داخل مجال content. instagram-content-architect أُعيد توجيه negative_trigger
+      الخاص بها إليها.
+
+# ── تكرارات وأسماء قديمة ──────────────────────────────────────────────────────
+duplicates:
+  - item_a: short-form-video-plan
+    item_b: drdana-short-form-video-plan
+    similarity: PROBABLE_DUPLICATE
+    decision: DEPRECATE
+    target: short-form-video-plan
+    reason: >
+      وصفان متطابقان حرفياً تقريباً وتاريخ تحديث واحد (2026-08-02).
+      لا قدرة فريدة في النسخة العامة. تُوسم DEPRECATED بـ deprecated_by
+      يشير إلى drdana-short-form-video-plan. لا حذف في هذه المرحلة.
+    manual_step: حذف المهارة من الحساب — قرار الطبيب/ة
+
+  - item_a: personal-brand-strategy
+    item_b: instagram-personal-brand-strategist
+    similarity: HIGH
+    decision: MANUAL_REVIEW
+    reason: >
+      تشابه في الغرض لا في النطاق: النسخة العامة تغطي منصات وعلامات غير طبية،
+      والمرقّاة مخصصة لانستغرام ولتموضع الطبيب/ة. لا يُدمجان بناءً على التشابه وحده.
+      القرار يحتاج الطبيب/ة: هل تحتاج استراتيجية علامة خارج انستغرام؟
+
+  - item_a: emai-test
+    item_b: null
+    similarity: null
+    decision: DELETE_CANDIDATE
+    reason: مهارة اختبار بوصف من كلمتين، بلا مراجع، بلا قدرة فعلية
+    manual_step: حذف من الحساب — لا يُحذف آلياً
+
+  - item_b: null
+    item_a: meta-ads-test
+    similarity: null
+    decision: DELETE_CANDIDATE
+    reason: مهارة اختبار بوصف من كلمتين، بلا مراجع، بلا قدرة فعلية
+    manual_step: حذف من الحساب — لا يُحذف آلياً
+
+  - item_a: lower
+    item_b: null
+    similarity: null
+    decision: ARCHIVE
+    reason: >
+      «كاتب صحائف الدعوى» — مجال legal خارج نطاق العمل الحالي تماماً.
+      قدرة حقيقية لا مهارة اختبار، فلا تُحذف. تُؤرشف حتى تُقرَّر.
+    manual_step: قرار الطبيب/ة
+
+policies:
+  - id: house-rules
+    path: identity/house-rules.md
+    type: GLOBAL_POLICY
+    scope: ALL_ASSISTANTS
+    priority: HIGHEST
+    override_allowed: false
+    action: NORMALIZE_HEADER_ONLY
+    reason: تصنيفه كسياسة عامة وربطه بالوراثة — بلا أي تعديل على قواعده الموضوعية
